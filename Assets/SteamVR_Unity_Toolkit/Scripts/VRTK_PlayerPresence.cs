@@ -46,22 +46,16 @@
 
         private void OnGrabObject(object sender, ObjectInteractEventArgs e)
         {
-            if (e.target.GetComponent<Collider>())
-            {
-                Physics.IgnoreCollision(GetComponent<Collider>(), e.target.GetComponent<Collider>(), true);
-            }
-
-            foreach (var childCollider in e.target.GetComponentsInChildren<Collider>())
-            {
-                Physics.IgnoreCollision(GetComponent<Collider>(), childCollider, true);
-            }
+            IgnoreCollisions(e.target.GetComponents<Collider>(), true);
+            IgnoreCollisions(e.target.GetComponentsInChildren<Collider>(), true);
         }
 
         private void OnUngrabObject(object sender, ObjectInteractEventArgs e)
         {
-            if (e.target.GetComponent<VRTK_InteractableObject>() && !e.target.GetComponent<VRTK_InteractableObject>().IsGrabbed())
+            if (e.target.GetComponent<VRTK_InteractableObject>())
             {
-                Physics.IgnoreCollision(GetComponent<Collider>(), e.target.GetComponent<Collider>(), false);
+                IgnoreCollisions(e.target.GetComponents<Collider>(), false);
+                IgnoreCollisions(e.target.GetComponentsInChildren<Collider>(), false);
             }
         }
 
@@ -126,10 +120,21 @@
             UpdateCollider();
         }
 
+        private void IgnoreCollisions(Collider[] colliders, bool state)
+        {
+            foreach (var controllerCollider in colliders)
+            {
+                Physics.IgnoreCollision(GetComponent<Collider>(), controllerCollider, state);
+            }
+        }
+
         private void InitControllerListeners(GameObject controller)
         {
             if (controller)
             {
+                IgnoreCollisions(controller.GetComponents<Collider>(), true);
+                IgnoreCollisions(controller.GetComponentsInChildren<Collider>(), true);
+
                 var grabbingController = controller.GetComponent<VRTK_InteractGrab>();
                 if (grabbingController && ignoreGrabbedCollisions)
                 {
